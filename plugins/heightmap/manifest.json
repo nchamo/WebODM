@@ -1,0 +1,13 @@
+{
+	"name": "Heightmap",
+	"webodmMinVersion": "0.1.0",
+	"description": "Calculate and draw a heightmap based on the heightmap DEMs",
+	"version": "1.0.0",
+	"author": "Nicolas Chamo",
+	"email": "nicolas@chamo.com.ar",
+	"repository": "https://github.com/OpenDroneMap/WebODM",
+	"tags": ["contours", "heightmap", "dsm", "dem", "dtm"],
+	"homepage": "https://github.com/OpenDroneMap/WebODM",
+	"experimental": false,
+	"deprecated": false
+}

@@ -1,0 +1,6 @@
+Formato para los puntos de control:
+https://docs.opendronemap.org/using.html#ground-control-points
+https://github.com/mapillary/OpenSfM/blob/f0c5f50fb49b4374cf1759b6a6064fe6ed29dd0f/doc/source/gcp.rst
+
+Qué hacer cuando se cuelga en Post Processing?
+https://community.opendronemap.org/t/webodm-stuck-at-post-peocessing/2098/21
