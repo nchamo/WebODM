@@ -36,7 +36,7 @@ class TaskContoursGenerate(TaskView):
             supported_formats = ['GPKG', 'ESRI Shapefile', 'DXF', 'GeoJSON']
             if not format in supported_formats:
                 raise GrassEngineException("Invalid format {} (must be one of: {})".format(format, ",".join(supported_formats)))
-            kernel = round(request.data.get('kernel', 5))
+            kernel = round(float(request.data.get('kernel', 5)))
 
             context.add_param('dem_file', dem)
             context.add_param('interval', interval)
