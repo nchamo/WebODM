@@ -183,11 +183,25 @@ export default class HeightmapPanel extends React.Component {
         const highestLevel = allLevels[allLevels.length - 1];
         const interval = parseFloat(this.getFormValues().interval);
 
-        let layerGroup = L.layerGroup();
+        let levelMap = new Map();
         geojson.features.forEach(levelFeature => {
           const level = levelFeature.properties.level
           const rgbHex = this.heatmap_coloring(level, lowestLevel, highestLevel);
           const areaInLevel = area(levelFeature).toFixed(2);
+          levelMap.set(level, { color: rgbHex, area: areaInLevel });
+        });
+
+        let msg = '';
+        for (const [level, properties] of levelMap.entries()) {
+          msg += `Between ${level}m and ${level + interval}m: Area is ${properties.area}m2\n`;
+        }
+        alert(msg);
+
+        let layerGroup = L.layerGroup();
+        geojson.features.forEach(levelFeature => {
+          const level = levelFeature.properties.level
+          const rgbHex = levelMap.get(level).color;
+          const areaInLevel = levelMap.get(level).area;
           let geojsonForLevel = L.geoJSON(levelFeature).setStyle({color: rgbHex, fill: true, fillColor: rgbHex, fillOpacity: 1})
               .bindPopup(`Altitude: Between ${level}m and ${level + interval}m<BR>Area: ${areaInLevel}m2`)
               .on('popupopen', popup => {
