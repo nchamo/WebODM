@@ -1,0 +1,13 @@
+{
+	"name": "Labels",
+	"webodmMinVersion": "0.9.0",
+	"description": "Add labels to your orthophotos",
+	"version": "1.0.0",
+	"author": "Nicolas Chamo",
+	"email": "nicolas@chamo.com.ar",
+	"repository": "https://github.com/OpenDroneMap/WebODM",
+	"tags": ["labels", "orthophoto"],
+	"homepage": "https://github.com/OpenDroneMap/WebODM",
+	"experimental": false,
+	"deprecated": false
+}

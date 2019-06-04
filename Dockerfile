@@ -23,6 +23,8 @@ RUN apt-get -qq update && apt-get -qq install -t testing -y binutils libproj-dev
 # Install pip reqs
 ADD requirements.txt /webodm/
 RUN pip install -r requirements.txt
+ADD requirements3.txt /webodm/
+RUN pip3 install -r requirements3.txt
 
 # Install Python GDAL
 RUN pip install GDAL~=$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"

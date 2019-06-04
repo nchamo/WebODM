@@ -4,6 +4,7 @@ version: '2.1'
 volumes:
   dbdata:
   appmedia:
+  appannotations:
 services:
   db:
     image: opendronemap/webodm_db
@@ -20,6 +21,7 @@ services:
     entrypoint: /bin/bash -c "chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/start.sh\""
     volumes:
       - ${WO_MEDIA_DIR}:/webodm/app/media
+      - ${WO_ANNOTATIONS_DIR}:/webodm/app/annotations
     ports:
       - "${WO_PORT}:8000"
     depends_on:
@@ -44,6 +46,7 @@ services:
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
       - ${WO_MEDIA_DIR}:/webodm/app/media
+      - ${WO_ANNOTATIONS_DIR}:/webodm/app/annotations
     depends_on:
       - db
       - broker
