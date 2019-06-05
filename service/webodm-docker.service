@@ -4,12 +4,16 @@ Requires=docker.service
 After=docker.service
 
 [Service]
+Environment=WEBODM=/data/data1/PICTO-Bosques/WebODM/webodm.sh
+Environment=LABELME=/data/data1/PICTO-Bosques/LabelMeAnnotationTool/labelme.sh
+Environment=MEDIA=/data/data1/PICTO-Bosques/ODMMedia/
+Environment=ANNOTATIONS=/data/data1/PICTO-Bosques/ODMAnnotations/
 Type=forking
 User=odm
 Group=odm
 WorkingDirectory=/data/data1/PICTO-Bosques/WebODM
-ExecStart=/bin/bash -c '/data/data1/PICTO-Bosques/WebODM/webodm.sh start --port 80 --media-dir /data/data1/PICTO-Bosques/ODMMedia/'
-ExecStop=/bin/bash -c '/data/data1/PICTO-Bosques/WebODM/webodm.sh stop'
+ExecStart=/bin/bash -c '${WEBODM} start --port 80 --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS}; ${LABELME} start --port 8080 --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS}'
+ExecStop=/bin/bash -c '${WEBODM} stop; ${LABELME} stop'
 RemainAfterExit=yes
 Restart=on-failure
 
