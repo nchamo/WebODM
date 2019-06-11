@@ -383,3 +383,32 @@ class TaskAssetsImport(APIView):
 
         serializer = TaskSerializer(task)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+"""
+Task images import
+"""
+class TaskImagesImport(APIView):
+    permission_classes = (permissions.AllowAny,)
+    parser_classes = (parsers.MultiPartParser, parsers.JSONParser, parsers.FormParser,)
+
+    def post(self, request, project_pk=None):
+        project = get_and_check_project(request, project_pk, ('change_project',))
+
+        import_url = request.data.get('url', None)
+        task_name = request.data.get('name', 'Imported Task')
+
+        if not import_url:
+            raise exceptions.ValidationError(detail="Cannot create task, you must specify a URL.")
+
+        with transaction.atomic():
+            task = models.Task.objects.create(project=project,
+                                              auto_processing_node=True,
+                                              name=task_name,
+                                              import_url=import_url,
+                                              pending_action=pending_actions.IMPORT_IMAGES,
+                                              options=[{'name': 'dsm', 'value': 'true'}, {'name': 'dtm', 'value': 'true'}])
+            task.create_task_directories()
+            worker_tasks.process_task.delay(task.id)
+
+        serializer = TaskSerializer(task, partial=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)        

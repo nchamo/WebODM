@@ -1,4 +1,4 @@
-.leaflet-control-heightmap .heightmap-panel{
+.leaflet-control-elevationmap .elevationmap-panel{
   padding: 6px 10px 6px 6px;
   background: #fff;
   min-width: 250px; 
@@ -72,5 +72,11 @@
 
   .action-buttons{
     margin-top: 12px;
+  }
+  
+  .help {
+    margin-left: 4px;
+    top: 4px;
+    font-size: 14px;
   }
 }

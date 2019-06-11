@@ -6,8 +6,12 @@
 
 ${script} ${params}
 
-if [ -e "output.json" ]; then
-    echo "$$(pwd)/output.json"
+if [ -e "${output}" ]; then
+  if [ -e "$$(pwd)/${output}" ]; then
+    echo "$$(pwd)/${output}"
+  else  
+    echo "${output}"
+  fi  
 else
     echo "error"
 fi

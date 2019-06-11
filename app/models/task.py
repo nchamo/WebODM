@@ -26,6 +26,7 @@ from django.utils import timezone
 from urllib3.exceptions import ReadTimeoutError
 
 from app import pending_actions
+from app import models as appmodels
 from django.contrib.gis.db.models.fields import GeometryField
 
 from app.testwatch import testWatch
@@ -37,6 +38,8 @@ from .project import Project
 
 from functools import partial
 import subprocess
+from urllib.parse import urlparse
+import xml.etree.ElementTree as ET
 
 logger = logging.getLogger('app.logger')
 
@@ -172,6 +175,7 @@ class Task(models.Model):
         (pending_actions.RESTART, 'RESTART'),
         (pending_actions.RESIZE, 'RESIZE'),
         (pending_actions.IMPORT, 'IMPORT'),
+        (pending_actions.IMPORT_IMAGES, 'IMPORT_IMAGES'),
     )
 
     # Not an exact science
@@ -337,6 +341,67 @@ class Task(models.Model):
         else:
             raise FileNotFoundError("{} is not a valid asset".format(asset))
 
+    def handle_images_import(self):
+        self.console_output += "Importing images...\n"
+        self.save()
+        
+        if not self.import_url:
+            logger.warning("Could not find url to import from in imported task {}".format(self))
+        else:
+            parse_result = urlparse(self.import_url)
+            paths = parse_result.query.split('/')
+            if not 'category' in paths or paths.index('category') >= len(paths) - 1:
+                logger.warning("The url provide does not have the correct format in imported task {}".format(self))
+            else:
+                category = paths[paths.index('category') + 1]
+                # TODO: Make sure we make this work with paging. The max page size is 500, 
+                # but if we have more images this won't work
+                xml_url = '{}://{}/ws.php?format=rest&method=pwg.categories.getImages&cat_id={}&recursive=false&per_page=500'.format(parse_result.scheme, parse_result.netloc, category)
+                try:
+                    logger.info("Importing images from {} for {}".format(xml_url, self))
+                    
+                    xml_file = requests.get(xml_url, timeout=10).text
+                    root = ET.fromstring(xml_file)
+                    files = [{'fileName': image.get('file'), 'fileUrl': image.get('element_url')} for image in root.findall('images/image')]
+                    logger.info("Found the following images to download {}".format(files))
+                    
+                    self.images_count = len(files)
+                    self.save()
+                    downloaded_total = 0
+                    for file in files: 
+                        path = self.task_path(file['fileName'])
+                        self.console_output += "Downloading {}/{}: {}\n".format(downloaded_total + 1, len(files), file['fileUrl'])
+                        self.save()
+                        download_stream = requests.get(file['fileUrl'], stream=True, timeout=60)
+                        content_length = download_stream.headers.get('content-length')
+                        total_length = int(content_length) if content_length is not None else None
+                        downloaded = 0
+                        last_update = 0
+
+                        with open(path, 'wb') as fd:
+                            for chunk in download_stream.iter_content(4096):
+                                downloaded += len(chunk)
+
+                                if time.time() - last_update >= 2:
+                                    # Update progress
+                                    if total_length is not None:
+                                        Task.objects.filter(pk=self.id).update(upload_progress=((downloaded_total + float(downloaded) / total_length) / len(files)))
+
+                                    self.check_if_canceled()
+                                    last_update = time.time()
+
+                                fd.write(chunk)
+                        appmodels.ImageUpload.objects.create(task=self, image=path)        
+                        downloaded_total += 1
+
+                except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, ReadTimeoutError) as e:
+                    raise NodeServerError(e)
+
+        self.refresh_from_db()
+        self.pending_action = None
+        self.processing_time = 0
+        self.save()
+
     def handle_import(self):
         self.console_output += "Importing assets...\n"
         self.save()
@@ -404,6 +469,9 @@ class Task(models.Model):
         try:
             if self.pending_action == pending_actions.IMPORT:
                 self.handle_import()
+            
+            if self.pending_action == pending_actions.IMPORT_IMAGES:
+                self.handle_images_import()    
 
             if self.pending_action == pending_actions.RESIZE:
                 resized_images = self.resize_images()

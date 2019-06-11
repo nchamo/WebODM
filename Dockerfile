@@ -26,9 +26,6 @@ RUN pip install -r requirements.txt
 ADD requirements3.txt /webodm/
 RUN pip3 install -r requirements3.txt
 
-# Install Python GDAL
-RUN pip install GDAL~=$(gdal-config --version) --global-option=build_ext --global-option="-I/usr/include/gdal"
-
 ADD . /webodm/
 
 # Setup cron

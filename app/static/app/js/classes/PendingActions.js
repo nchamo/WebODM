@@ -2,7 +2,8 @@ const CANCEL = 1,
       REMOVE = 2,
       RESTART = 3,
       RESIZE = 4,
-      IMPORT = 5;
+      IMPORT = 5,
+      IMPORT_IMAGES = 6;
 
 let pendingActions = {
     [CANCEL]: {
@@ -19,6 +20,9 @@ let pendingActions = {
     },
     [IMPORT]: {
       descr: "Importing..."
+    },
+    [IMPORT_IMAGES]: {
+      descr: "Importing images..."
     }
 };
 
@@ -28,6 +32,7 @@ export default {
     RESTART: RESTART,
     RESIZE: RESIZE,
     IMPORT: IMPORT,
+    IMPORT_IMAGES: IMPORT_IMAGES,
 
     description: function(pendingAction) {
       if (pendingActions[pendingAction]) return pendingActions[pendingAction].descr;

@@ -11,51 +11,49 @@ from worker.tasks import execute_grass_script
 from app.plugins.grass_engine import grass, GrassEngineException, cleanup_grass_context
 from worker.celery import app as celery
 
-class TaskContoursGenerate(TaskView):
+class TaskElevationMapGenerate(TaskView):
     def post(self, request, pk=None):
         task = self.get_and_check_task(request, pk)
-
-        layer = request.data.get('layer', None)
-        if layer == 'DSM' and task.dsm_extent is None:
-            return Response({'error': 'No DSM layer is available.'})
-        elif layer == 'DTM' and task.dtm_extent is None:
-            return Response({'error': 'No DTM layer is available.'})
+        
+        if task.dsm_extent is None:
+            return Response({'error': 'No DSM layer is available.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        reference = request.data.get('reference', 'global')
+        if reference.lower() == 'floor' and task.dtm_extent is None:
+            return Response({'error': 'No DTM layer is available. You need one to reference from the floor.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            if layer == 'DSM':
-                dem = os.path.abspath(task.get_asset_download_path("dsm.tif"))
-            elif layer == 'DTM':
-                dem = os.path.abspath(task.get_asset_download_path("dtm.tif"))
-            else:
-                raise GrassEngineException('{} is not a valid layer.'.format(layer))
-
             context = grass.create_context({'auto_cleanup' : False})
+            dsm = os.path.abspath(task.get_asset_download_path("dsm.tif"))
+            dtm = os.path.abspath(task.get_asset_download_path("dtm.tif")) if reference.lower() == 'floor' else None
             epsg = int(request.data.get('epsg', '3857'))
-            interval = float(request.data.get('interval', 1))
+            interval = request.data.get('interval', '5')
             format = request.data.get('format', 'GPKG')
             supported_formats = ['GPKG', 'ESRI Shapefile', 'DXF', 'GeoJSON']
             if not format in supported_formats:
                 raise GrassEngineException("Invalid format {} (must be one of: {})".format(format, ",".join(supported_formats)))
-            kernel = round(float(request.data.get('kernel', 5)))
+            noise_filter_size = float(request.data.get('noise_filter_size', 2))
 
-            context.add_param('dem_file', dem)
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            context.add_param('dsm_file', dsm)
             context.add_param('interval', interval)
             context.add_param('format', format)
-            context.add_param('kernel', kernel)
+            context.add_param('noise_filter_size', noise_filter_size)
             context.add_param('epsg', epsg)
-            context.add_param('python_script_path', os.path.join(os.path.dirname(os.path.abspath(__file__)), "heightmap.py"))
-            context.set_location(dem)
+            context.add_param('python_script_path', os.path.join(current_dir, "elevationmap.py"))
+            if dtm != None:
+                context.add_param('dtm', '--dtm {}'.format(dtm))
+            else:
+                context.add_param('dtm', '')    
+            context.set_location(dsm)
 
-            celery_task_id = execute_grass_script.delay(os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "calc_heightmap.grass"
-            ), context.serialize()).task_id
+            celery_task_id = execute_grass_script.delay(os.path.join(current_dir, "calc_elevation_map.grass"), context.serialize()).task_id
 
             return Response({'celery_task_id': celery_task_id}, status=status.HTTP_200_OK)
         except GrassEngineException as e:
             return Response({'error': str(e)}, status=status.HTTP_200_OK)
 
-class TaskContoursCheck(TaskView):
+class TaskElevationMapCheck(TaskView):
     def get(self, request, pk=None, celery_task_id=None):
         res = celery.AsyncResult(celery_task_id)
         if not res.ready():
@@ -66,24 +64,24 @@ class TaskContoursCheck(TaskView):
                 cleanup_grass_context(result['context'])
                 return Response({'ready': True, 'error': result['error']})
 
-            contours_file = result.get('output')
-            if not contours_file or not os.path.exists(contours_file):
+            output = result.get('output')
+            if not output or not os.path.exists(output):
                 cleanup_grass_context(result['context'])
-                return Response({'ready': True, 'error': contours_file + 'Contours file could not be generated. This might be a bug.'})
+                return Response({'ready': True, 'error': output})
 
-            request.session['contours_' + celery_task_id] = contours_file
+            request.session['elevation_map_' + celery_task_id] = output
             return Response({'ready': True})
 
 
-class TaskContoursDownload(TaskView):
+class TaskElevationMapDownload(TaskView):
     def get(self, request, pk=None, celery_task_id=None):
-        contours_file = request.session.get('contours_' + celery_task_id, None)
+        elevation_map_file = request.session.get('elevation_map_' + celery_task_id, None)
 
-        if contours_file is not None:
-            filename = os.path.basename(contours_file)
-            filesize = os.stat(contours_file).st_size
+        if elevation_map_file is not None:
+            filename = os.path.basename(elevation_map_file)
+            filesize = os.stat(elevation_map_file).st_size
 
-            f = open(contours_file, "rb")
+            f = open(elevation_map_file, "rb")
 
             # More than 100mb, normal http response, otherwise stream
             # Django docs say to avoid streaming when possible
@@ -100,4 +98,4 @@ class TaskContoursDownload(TaskView):
 
             return response
         else:
-            return Response({'error': 'Invalid contours download id'})
+            return Response({'error': 'Invalid elevation_map download id'})

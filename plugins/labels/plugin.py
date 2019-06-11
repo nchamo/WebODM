@@ -1,8 +1,10 @@
 from app.plugins import PluginBase
 from app.plugins import MountPoint
-from .api import TaskLabelPathGenerate
-from .api import TaskLabelPathCheck
-from .api import TaskConvertLabelsToGeoJson
+from .api import TaskGeneratePngFromGeoTiff
+from .api import TaskCheckCeleryTask
+from .api import TaskGenerateGeoJsonFromVerified
+from .api import TaskUploadGeoJsonToLabelMe
+from .api import TaskDownloadVerified
 
 
 
@@ -15,7 +17,9 @@ class Plugin(PluginBase):
 
     def api_mount_points(self):
         return [
-            MountPoint('task/(?P<pk>[^/.]+)/labels/generate', TaskLabelPathGenerate.as_view()),
-            MountPoint('task/(?P<pk>[^/.]+)/labels/check/(?P<celery_task_id>.+)', TaskLabelPathCheck.as_view()),
-            MountPoint('task/(?P<pk>[^/.]+)/labels/verified', TaskConvertLabelsToGeoJson.as_view()),
+            MountPoint('task/(?P<pk>[^/.]+)/labels/generatepng', TaskGeneratePngFromGeoTiff.as_view()),
+            MountPoint('task/(?P<pk>[^/.]+)/labels/check/(?P<celery_task_id>.+)', TaskCheckCeleryTask.as_view()),
+            MountPoint('task/(?P<pk>[^/.]+)/labels/generateverified', TaskGenerateGeoJsonFromVerified.as_view()),
+            MountPoint('task/(?P<pk>[^/.]+)/labels/downloadverified/(?P<celery_task_id>.+)', TaskDownloadVerified.as_view()),
+            MountPoint('task/(?P<pk>[^/.]+)/labels/upload', TaskUploadGeoJsonToLabelMe.as_view()),
         ]

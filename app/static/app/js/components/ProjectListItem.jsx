@@ -4,6 +4,7 @@ import update from 'immutability-helper';
 import TaskList from './TaskList';
 import NewTaskPanel from './NewTaskPanel';
 import ImportTaskPanel from './ImportTaskPanel';
+import ImportImagesFromUrlPanel from './ImportImagesFromUrlPanel';
 import UploadProgressBar from './UploadProgressBar';
 import ProgressBar from './ProgressBar';
 import ErrorMessage from './ErrorMessage';
@@ -34,7 +35,8 @@ class ProjectListItem extends React.Component {
       error: "",
       data: props.data,
       refreshing: false,
-      importing: false
+      importing: false,
+      importingImages: false
     };
 
     this.toggleTaskList = this.toggleTaskList.bind(this);
@@ -242,7 +244,7 @@ class ProjectListItem extends React.Component {
   }
 
   newTaskAdded = () => {
-    this.setState({importing: false});
+    this.setState({importing: false, importingImages: false});
     
     if (this.state.showTaskList){
       this.taskList.refresh();
@@ -350,6 +352,14 @@ class ProjectListItem extends React.Component {
   handleCancelImportTask = () => {
     this.setState({importing: false});
   }
+  
+  handleImportImagesFromUrl = () => {
+    this.setState({importingImages: true});
+  }
+
+  handleCancelImportImagesFromUrl = () => {
+    this.setState({importingImages: false});
+  }
 
   render() {
     const { refreshing, data } = this.state;
@@ -387,6 +397,7 @@ class ProjectListItem extends React.Component {
               </button><button type="button" className="btn btn-sm dropdown-toggle btn-primary" data-toggle="dropdown"><span className="caret"></span></button>
               <ul className="dropdown-menu">
                 <li><a href="javascript:void(0);" onClick={this.handleImportTask}><i className="glyphicon glyphicon-import"></i> Import Existing Assets</a></li>
+                <li><a href="javascript:void(0);" onClick={this.handleImportImagesFromUrl}><i className="glyphicon glyphicon-import"></i> Import Images From URL</a></li>
              </ul></div>
             : ""}
 
@@ -456,6 +467,14 @@ class ProjectListItem extends React.Component {
             <ImportTaskPanel
               onImported={this.newTaskAdded}
               onCancel={this.handleCancelImportTask}
+              projectId={this.state.data.id}
+            />
+          : ""}
+          
+          {this.state.importingImages ? 
+            <ImportImagesFromUrlPanel
+              onImported={this.newTaskAdded}
+              onCancel={this.handleCancelImportImagesFromUrl}
               projectId={this.state.data.id}
             />
           : ""}

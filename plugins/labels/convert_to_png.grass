@@ -2,18 +2,18 @@
 # dst_folder: Folder to store the resulting PNG
 #
 # ------
-# output: If successful, prints the name to the image file. Otherwise it prints "error"
+# output: If successful, prints the path to the image file. Otherwise it prints "error"
 
 IMAGE_NAME="orthophoto.png"
 OUTPUT="${dst_folder}/$$IMAGE_NAME"
 
 if [ -e $$OUTPUT ]; then
-    echo $$IMAGE_NAME
+    echo $$OUTPUT
 else
     r.external input="${orthophoto}" output=raster --overwrite
     r.out.gdal in=raster output=$$OUTPUT format=PNG
     if [ -e $$OUTPUT ]; then
-        echo $$IMAGE_NAME
+        echo $$OUTPUT
     else
         echo "error"
     fi

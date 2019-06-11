@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+# Doing this to be able to use the code in common
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import xml.etree.ElementTree as ET
 import argparse, rasterio
-from rasterio import warp
 from geojson import Feature, FeatureCollection, Polygon, dumps
-
+from common import map_coordinates
 
 def main(args):
     objects = parse_annotation(args.annotations)
@@ -19,13 +22,7 @@ def main(args):
 
 def parse_annotation(xml_path):
     root = ET.parse(xml_path).getroot()
-    return [Object(xml_object) for xml_object in root.findall('object') if xml_object.find('verified').text == '1' and xml_object.find('deleted').text == '0']
-
-def map_to_epsg(src_crs, dst_crs, coordinates):
-    xs = [coordinate[0] for coordinate in coordinates]
-    ys = [coordinate[1] for coordinate in coordinates]
-    transformed = warp.transform(src_crs, dst_crs, xs, ys)
-    return [(long, lat) for long, lat in zip(transformed[0], transformed[1])]    
+    return [Object(xml_object) for xml_object in root.findall('object') if xml_object.find('verified').text == '1' and xml_object.find('deleted').text == '0'] 
 
 class Object:
     def __init__(self, xml_object):
@@ -35,12 +32,7 @@ class Object:
         self.points = [(float(point.find('y').text), float(point.find('x').text)) for point in xml_object.findall('polygon/pt')]
     
     def build_feature(self, tiff, epsg_code):
-        dst_crs = rasterio.crs.CRS.from_epsg(epsg_code)
-        coordinates = [tiff.xy(point[0], point[1]) for point in self.points]
-        if coordinates[0] != coordinates[-1]:
-            coordinates.append(coordinates[0])
-        coordinates = map_to_epsg(tiff.crs, dst_crs, coordinates)
-        
+        coordinates = map_coordinates.map_pixels_to_coordinates(tiff, epsg_code, self.points)
         polygon = Polygon([coordinates])
         return Feature(geometry = polygon, properties = { 'name': self.name, 'attributes': self.attributes })
 

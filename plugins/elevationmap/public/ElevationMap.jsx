@@ -2,10 +2,10 @@ import L from 'leaflet';
 import ReactDOM from 'ReactDOM';
 import React from 'react';
 import PropTypes from 'prop-types';
-import './Heightmap.scss';
-import HeightmapPabel from './HeightmapPanel';
+import './ElevationMap.scss';
+import ElevationMapPanel from './ElevationMapPanel';
 
-class HeightmapButton extends React.Component {
+class ElevationMapButton extends React.Component {
   static propTypes = {
     tasks: PropTypes.object.isRequired,
     map: PropTypes.object.isRequired
@@ -33,8 +33,8 @@ class HeightmapButton extends React.Component {
     return (<div className={showPanel ? "open" : ""}>
         <a href="javascript:void(0);" 
             onClick={this.handleOpen} 
-            className="leaflet-control-heightmap-button leaflet-bar-part theme-secondary"></a>
-        <HeightmapPabel map={this.props.map} isShowed={showPanel} tasks={this.props.tasks} onClose={this.handleClose} />
+            className="leaflet-control-elevationmap-button leaflet-bar-part theme-secondary"></a>
+        <ElevationMapPanel map={this.props.map} isShowed={showPanel} tasks={this.props.tasks} onClose={this.handleClose} />
     </div>);
   }
 }
@@ -45,9 +45,9 @@ export default L.Control.extend({
     },
 
     onAdd: function (map) {
-        var container = L.DomUtil.create('div', 'leaflet-control-heightmap leaflet-bar leaflet-control');
+        var container = L.DomUtil.create('div', 'leaflet-control-elevationmap leaflet-bar leaflet-control');
         L.DomEvent.disableClickPropagation(container);
-        ReactDOM.render(<HeightmapButton map={this.options.map} tasks={this.options.tasks} />, container);
+        ReactDOM.render(<ElevationMapButton map={this.options.map} tasks={this.options.tasks} />, container);
 
         return container;
     }

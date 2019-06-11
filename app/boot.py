@@ -120,9 +120,9 @@ def add_default_presets():
                                         defaults={'options': [{'name': 'min-num-features', 'value': "18000"},
                                                               {'name': 'matcher-neighbors', 'value': "21"},
                                                               {'name': 'texturing-data-term', 'value': "area"}]})
-        Preset.objects.update_or_create(name='DSM + DTM', system=True,
+        Preset.objects.update_or_create(name='Only DSM', system=True,
                                         defaults={
-                                            'options': [{'name': 'dsm', 'value': True}, {'name': 'dtm', 'value': True}]})
+                                            'options': [{'name': 'dsm', 'value': True}]})
         Preset.objects.update_or_create(name='Fast Orthophoto', system=True,
                                         defaults={'options': [{'name': 'fast-orthophoto', 'value': True}]})
         Preset.objects.update_or_create(name='High Resolution', system=True,
@@ -132,7 +132,7 @@ def add_default_presets():
                                                               {'name': 'orthophoto-resolution', 'value': "2.0"},
                                                               ]})
         Preset.objects.update_or_create(name='Default', system=True,
-                                        defaults={'options': [{'name': 'dsm', 'value': True}]})
+                                        defaults={'options': [{'name': 'dsm', 'value': True}, {'name': 'dtm', 'value': True}]})
 
     except MultipleObjectsReturned:
         # Mostly to handle a legacy code problem where
