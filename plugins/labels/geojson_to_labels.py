@@ -28,9 +28,14 @@ def main(args):
         root.append(xml_object)
     
     # Write the new file to disk    
-    file.write(args.annotations)
+    write_to_disk(file, args.annotations)
     # Give everyone access to read-write it
     os.chmod(args.annotations, 0o666)
+
+def write_to_disk(xml_file, annotations_path):
+    if not os.path.exists(os.path.dirname(annotations_path)):
+        os.makedirs(os.path.dirname(annotations_path))
+    xml_file.write(open(annotations_path, 'w+'), encoding='unicode')
 
 def parse_or_create_annotation(annotations_path):
     file = ET.parse(annotations_path) if os.path.exists(annotations_path) else build_default_xml_structure(annotations_path)    

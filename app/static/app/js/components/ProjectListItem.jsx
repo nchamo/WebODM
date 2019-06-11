@@ -390,14 +390,13 @@ class ProjectListItem extends React.Component {
               <div className={"asset-download-buttons btn-group " + (this.state.upload.uploading ? "hide" : "")}>
                 <button type="button" 
                       className="btn btn-primary btn-sm"
-                      onClick={this.handleUpload}
-                      ref={this.setRef("uploadButton")}>
-                <i className="glyphicon glyphicon-upload"></i>
-                Select Images and GCP
+                      onClick={this.handleImportImagesFromUrl}>
+                <i className="glyphicon glyphicon-import"></i>
+                Import Images From URL
               </button><button type="button" className="btn btn-sm dropdown-toggle btn-primary" data-toggle="dropdown"><span className="caret"></span></button>
               <ul className="dropdown-menu">
+                <li><a href="javascript:void(0);" onClick={this.handleUpload} ref={this.setRef("uploadButton")}><i className="glyphicon glyphicon-upload"></i> Select Images and GCP</a></li>
                 <li><a href="javascript:void(0);" onClick={this.handleImportTask}><i className="glyphicon glyphicon-import"></i> Import Existing Assets</a></li>
-                <li><a href="javascript:void(0);" onClick={this.handleImportImagesFromUrl}><i className="glyphicon glyphicon-import"></i> Import Images From URL</a></li>
              </ul></div>
             : ""}
 

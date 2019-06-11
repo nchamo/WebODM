@@ -480,6 +480,11 @@ class TaskListItem extends React.Component {
                   <strong>Options: </strong> {this.optionsToList(task.options)}<br/>
                 </div>
               : ""}
+              {task.import_url ?
+                <div className="labels">
+                  <strong>Imported from: </strong> <a href={task.import_url}>{task.import_url}</a><br/>
+                </div>
+              : ""}
               {/* TODO: List of images? */}
 
               {showOrthophotoMissingWarning ?

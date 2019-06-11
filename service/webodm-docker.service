@@ -4,19 +4,16 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-Environment=PICTO=/data/data1/PICTO-Bosques
-Environment=REPOS=${PICTO}/repos
-Environment=WEBODM_FOLDER=${REPOS}/WebODM
-Environment=WEBODM=${WEBODM_FOLDER}/webodm.sh
-Environment=LABELME=${REPOS}/LabelMeAnnotationTool/labelme.sh
-Environment=PIWIGO=${REPOS}/Piwigo/piwigo.sh
-Environment=MEDIA=${PICTO}/ODMMedia/
-Environment=ANNOTATIONS=${PICTO}/ODMAnnotations/
-Environment=PIWIGO_DATA=${PICTO}/PiwigoData
+Environment=WEBODM=/data/data1/PICTO-Bosques/repos/WebODM/webodm.sh
+Environment=LABELME=/data/data1/PICTO-Bosques/repos/LabelMeAnnotationTool/labelme.sh
+Environment=PIWIGO=/data/data1/PICTO-Bosques/repos/Piwigo/piwigo.sh
+Environment=MEDIA=/data/data1/PICTO-Bosques/ODMMedia/
+Environment=ANNOTATIONS=/data/data1/PICTO-Bosques/ODMAnnotations/
+Environment=PIWIGO_DATA=/data/data1/PICTO-Bosques/PiwigoData
 Type=forking
 User=odm
 Group=odm
-WorkingDirectory=${WEBODM_FOLDER}
+WorkingDirectory=/data/data1/PICTO-Bosques/repos/WebODM
 ExecStart=/bin/bash -c '${WEBODM} start --port 80 --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS} && ${LABELME} start --port 8000 --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS} && ${PIWIGO} start --port 9000 --dir ${PIWIGO_DATA}'
 ExecStop=/bin/bash -c '${WEBODM} stop && ${LABELME} stop && ${PIWIGO} stop'
 RemainAfterExit=yes
