@@ -482,7 +482,7 @@ class TaskListItem extends React.Component {
               : ""}
               {task.import_url ?
                 <div className="labels">
-                  <strong>Imported from: </strong> <a href={task.import_url}>{task.import_url}</a><br/>
+                  <strong>Imported from Piwigo: </strong> <a href={task.import_url}>Go to album</a><br/>
                 </div>
               : ""}
               {/* TODO: List of images? */}

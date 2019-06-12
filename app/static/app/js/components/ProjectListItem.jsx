@@ -4,7 +4,7 @@ import update from 'immutability-helper';
 import TaskList from './TaskList';
 import NewTaskPanel from './NewTaskPanel';
 import ImportTaskPanel from './ImportTaskPanel';
-import ImportImagesFromUrlPanel from './ImportImagesFromUrlPanel';
+import ImportImagesFromPiwigoPanel from './ImportImagesFromPiwigoPanel';
 import UploadProgressBar from './UploadProgressBar';
 import ProgressBar from './ProgressBar';
 import ErrorMessage from './ErrorMessage';
@@ -353,7 +353,7 @@ class ProjectListItem extends React.Component {
     this.setState({importing: false});
   }
   
-  handleImportImagesFromUrl = () => {
+  handleImportImagesFromPiwigo = () => {
     this.setState({importingImages: true});
   }
 
@@ -390,9 +390,9 @@ class ProjectListItem extends React.Component {
               <div className={"asset-download-buttons btn-group " + (this.state.upload.uploading ? "hide" : "")}>
                 <button type="button" 
                       className="btn btn-primary btn-sm"
-                      onClick={this.handleImportImagesFromUrl}>
+                      onClick={this.handleImportImagesFromPiwigo}>
                 <i className="glyphicon glyphicon-import"></i>
-                Import Images From URL
+                Import Images From Piwigo
               </button><button type="button" className="btn btn-sm dropdown-toggle btn-primary" data-toggle="dropdown"><span className="caret"></span></button>
               <ul className="dropdown-menu">
                 <li><a href="javascript:void(0);" onClick={this.handleUpload} ref={this.setRef("uploadButton")}><i className="glyphicon glyphicon-upload"></i> Select Images and GCP</a></li>
@@ -471,7 +471,7 @@ class ProjectListItem extends React.Component {
           : ""}
           
           {this.state.importingImages ? 
-            <ImportImagesFromUrlPanel
+            <ImportImagesFromPiwigoPanel
               onImported={this.newTaskAdded}
               onCancel={this.handleCancelImportImagesFromUrl}
               projectId={this.state.data.id}

@@ -39,7 +39,6 @@ from .project import Project
 from functools import partial
 import subprocess
 from urllib.parse import urlparse
-import xml.etree.ElementTree as ET
 
 logger = logging.getLogger('app.logger')
 
@@ -356,13 +355,12 @@ class Task(models.Model):
                 category = paths[paths.index('category') + 1]
                 # TODO: Make sure we make this work with paging. The max page size is 500, 
                 # but if we have more images this won't work
-                xml_url = '{}://{}/ws.php?format=rest&method=pwg.categories.getImages&cat_id={}&recursive=false&per_page=500'.format(parse_result.scheme, parse_result.netloc, category)
+                url = '{}://{}/ws.php?format=json&method=pwg.categories.getImages&cat_id={}&recursive=false&per_page=500'.format(parse_result.scheme, parse_result.netloc, category)
                 try:
-                    logger.info("Importing images from {} for {}".format(xml_url, self))
+                    logger.info("Importing images from {} for {}".format(url, self))
                     
-                    xml_file = requests.get(xml_url, timeout=10).text
-                    root = ET.fromstring(xml_file)
-                    files = [{'fileName': image.get('file'), 'fileUrl': image.get('element_url')} for image in root.findall('images/image')]
+                    result = requests.get(url, timeout=10).json()['result']
+                    files = [{'fileName': image['file'], 'fileUrl': image['element_url']} for image in result['images']]
                     logger.info("Found the following images to download {}".format(files))
                     
                     self.images_count = len(files)
