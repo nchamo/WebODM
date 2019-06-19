@@ -3,8 +3,9 @@ from django.conf.urls import url, include
 from app.api.presets import PresetViewSet
 from app.plugins import get_api_url_patterns
 from .projects import ProjectViewSet
-from .tasks import TaskViewSet, TaskTiles, TaskTilesJson, TaskDownloads, TaskAssets, TaskAssetsImport, TaskImagesImport, TaskAvailableAlbums
+from .tasks import TaskViewSet, TaskTiles, TaskTilesJson, TaskDownloads, TaskAssets, TaskAssetsImport, TaskImagesImport
 from .processingnodes import ProcessingNodeViewSet, ProcessingNodeOptionsView
+from .albums import AvailableAlbumsView
 from rest_framework_nested import routers
 from rest_framework_jwt.views import obtain_jwt_token
 
@@ -19,6 +20,7 @@ tasks_router.register(r'tasks', TaskViewSet, base_name='projects-tasks')
 
 urlpatterns = [
     url(r'processingnodes/options/$', ProcessingNodeOptionsView.as_view()),
+    url(r'albums', AvailableAlbumsView.as_view()),
 
     url(r'^', include(router.urls)),
     url(r'^', include(tasks_router.urls)),
@@ -29,7 +31,6 @@ urlpatterns = [
     url(r'projects/(?P<project_pk>[^/.]+)/tasks/(?P<pk>[^/.]+)/assets/(?P<unsafe_asset_path>.+)$', TaskAssets.as_view()),
     url(r'projects/(?P<project_pk>[^/.]+)/tasks/import$', TaskAssetsImport.as_view()),
     url(r'projects/(?P<project_pk>[^/.]+)/tasks/importimages$', TaskImagesImport.as_view()),
-    url(r'projects/(?P<project_pk>[^/.]+)/tasks/albums$', TaskAvailableAlbums.as_view()),
 
     url(r'^auth/', include('rest_framework.urls')),
     url(r'^token-auth/', obtain_jwt_token),

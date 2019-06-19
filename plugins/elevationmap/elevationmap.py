@@ -38,9 +38,9 @@ def main(args):
         # Binarize the image. Everything in [bottom, top) is white. Everything else is black
         surface_array = np.ma.where((bottom <= array) & (array < top), 255, 0).astype(np.uint8)
         # Apply kernel to reduce noise
-        closing = cv2.morphologyEx(surface_array, cv2.MORPH_CLOSE, kernel)
+        without_noise = cv2.morphologyEx(surface_array, cv2.MORPH_CLOSE, kernel) if kernel is not None else surface_array
         # Find contours
-        contours, hierarchy = cv2.findContours(closing, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(without_noise, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
         # Check if we found something
         if len(contours) > 0:
             # Transform contours from pixels to coordinates
@@ -68,6 +68,8 @@ def to_pixel_format(contour):
     return [(pixel[0][1], pixel[0][0]) for pixel in contour]
 
 def get_kernel(noise_filter_size, dsm):
+    if noise_filter_size <= 0:
+        return None
     if dsm.crs.linear_units != 'metre':
         noise_filter_size *= 3.2808333333465 # Convert meter to feets
     return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (round(noise_filter_size / dsm.res[0]), round(noise_filter_size / dsm.res[1])))    

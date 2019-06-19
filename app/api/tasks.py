@@ -414,29 +414,3 @@ class TaskImagesImport(APIView):
 
         serializer = TaskSerializer(task, partial=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-"""
-Task get available albums
-"""
-class TaskAvailableAlbums(APIView):
-    permission_classes = (permissions.AllowAny,)
-    parser_classes = (parsers.MultiPartParser, parsers.JSONParser, parsers.FormParser,)
-
-    def get(self, request, project_pk=None):
-        parse_result = urlparse(request.build_absolute_uri())
-        new_url = '{}://{}:9000/ws.php?format=json&method=pwg.categories.getList&recursive=true&tree_output=true'.format(parse_result.scheme, parse_result.hostname)
-        categories = requests.get(new_url).json()['result']
-        result = self.flatten_list([self.build_category(cat) for cat in categories])
-        return Response(result, status=status.HTTP_200_OK)
-        
-    def build_category(self, category):
-        name = category['name']
-        images = category['nb_images']
-        url = category['url']
-        subcategories = self.flatten_list([self.build_category(subcat) for subcat in category['sub_categories']]) if category['nb_categories'] > 0 else []
-        for subcategory in subcategories:
-            subcategory['label'] = name + ' > ' + subcategory['label']
-        categoryInfo = [{'label': '{} ({} images)'.format(name, images), 'value': url }] if images > 0 else []
-        return categoryInfo + subcategories
-        
-    def flatten_list(self, list_of_lists):
-        return [item for sublist in list_of_lists for item in sublist]    

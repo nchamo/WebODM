@@ -22,14 +22,10 @@ class ImportImagesFromPiwigoPanel extends React.Component {
       options: [],
       loadingOptionsFromPiwigo: false,
       importingFromPiwigo: false,
-      importUrl: ""
+      importAlbum: null
     };
     
     this.loadPiwigoAlbums();
-  }
-
-  defaultTaskName = () => {
-    return `Task of ${new Date().toISOString()}`;
   }
 
   cancel = (e) => {
@@ -37,16 +33,18 @@ class ImportImagesFromPiwigoPanel extends React.Component {
   }
   
   handleChangeImportUrl = (e) => {
-    this.setState({importUrl: e.value});
+    this.setState({importAlbum: e});
   }
 
   handleConfirmImportUrl = () => {
     this.setState({importingFromPiwigo: true});
 
+    const name = this.state.importAlbum.label.substring(0, this.state.importAlbum.label.lastIndexOf("("));
+
     $.post(`/api/projects/${this.props.projectId}/tasks/importimages`,
       {
-        url: this.state.importUrl,
-        name: this.defaultTaskName()
+        url: this.state.importAlbum.value,
+        name: name
       }
     ).done(json => {
       this.setState({importingFromPiwigo: false});
@@ -64,7 +62,7 @@ class ImportImagesFromPiwigoPanel extends React.Component {
 
   loadPiwigoAlbums = () => {
     this.setState({loadingOptionsFromPiwigo: true});
-    $.get(`/api/projects/${this.props.projectId}/tasks/albums`)
+    $.get(`/api/albums`)
     .done(json => {
       this.setState({options: json});
     })
@@ -100,7 +98,7 @@ class ImportImagesFromPiwigoPanel extends React.Component {
                 />
               </div>
               <button onClick={this.handleConfirmImportUrl}
-                      disabled={this.state.importUrl.length < 4 || this.state.importingFromPiwigo} 
+                      disabled={!this.state.importAlbum || this.state.importingFromPiwigo} 
                       className="btn-import btn btn-primary"><i className="glyphicon glyphicon-cloud-download"></i> Import</button>
             </div>
           </div>
