@@ -355,7 +355,7 @@ class Task(models.Model):
                 category = paths[paths.index('category') + 1]
                 # TODO: Make sure we make this work with paging. The max page size is 500, 
                 # but if we have more images this won't work
-                url = '{}://{}/ws.php?format=json&method=pwg.categories.getImages&cat_id={}&recursive=false&per_page=500'.format(parse_result.scheme, parse_result.netloc, category)
+                url = 'http://piwigo:9000/ws.php?format=json&method=pwg.categories.getImages&cat_id={}&recursive=false&per_page=500'.format(category)
                 try:
                     logger.info("Importing images from {} for {}".format(url, self))
                     
@@ -368,7 +368,7 @@ class Task(models.Model):
                     downloaded_total = 0
                     for file in files: 
                         path = self.task_path(file['fileName'])
-                        self.console_output += "Downloading {}/{}: {}\n".format(downloaded_total + 1, len(files), file['fileUrl'])
+                        self.console_output += "Downloading {}/{}...\n".format(downloaded_total + 1, len(files))
                         self.save()
                         download_stream = requests.get(file['fileUrl'], stream=True, timeout=60)
                         content_length = download_stream.headers.get('content-length')

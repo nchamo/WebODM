@@ -1,6 +1,9 @@
 # This configuration does not include a processing node
 # Which makes for faster setup times
 version: '2.1'
+networks:
+  web:
+    external: true
 volumes:
   dbdata:
   appmedia:
@@ -22,8 +25,8 @@ services:
     volumes:
       - ${WO_MEDIA_DIR}:/webodm/app/media
       - ${WO_ANNOTATIONS_DIR}:/webodm/app/annotations
-    ports:
-      - "${WO_PORT}:8000"
+    expose:
+      - "8000"
     depends_on:
       - db
       - broker
@@ -35,6 +38,15 @@ services:
       - WO_BROKER
     restart: on-failure:10
     oom_score_adj: 0
+    labels:
+      - traefik.backend=webodm_webapp
+      - traefik.frontend.rule=Host:localhost
+      - traefik.docker.network=web
+      - traefik.port=8000
+      - traefik.enable=true
+    networks:
+      - web
+      - default
   broker:
     image: redis
     container_name: broker
@@ -55,3 +67,6 @@ services:
       - WO_DEBUG
     restart: on-failure:10
     oom_score_adj: 250
+    networks:
+      - web
+      - default

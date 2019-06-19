@@ -135,9 +135,6 @@ def welcome(request):
                       'firstuserform': fuf
                   })
 
-def imagenes(request):
-    return render(request, 'app/public/imagenes.html')                  
-
 @login_required
 def labelme(request):
     return render(request, 'app/public/labelme.html', {'title': 'Label Me'}) 

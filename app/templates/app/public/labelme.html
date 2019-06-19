@@ -17,6 +17,6 @@ function getQueryVariable(variable) {
 var folder = getQueryVariable('folder');
 var file = getQueryVariable('file');
 var iframe = document.getElementById('myiframe');
-iframe.src = window.location.protocol + '//' + window.location.hostname + ':8000/LabelMeAnnotationTool/tool.html?folder=' + folder + '&image=' + file + '&actions=a&scribble=false&mode=i';
+iframe.src = window.location.protocol + '//labelme.' + window.location.hostname + '/LabelMeAnnotationTool/tool.html?folder=' + folder + '&image=' + file + '&actions=a&scribble=false&mode=i';
 </script>  
 {% endblock %}

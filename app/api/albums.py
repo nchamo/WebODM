@@ -6,7 +6,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from urllib.parse import urlparse
 import requests
 
 """
@@ -17,8 +16,7 @@ class AvailableAlbumsView(APIView):
     parser_classes = (parsers.MultiPartParser, parsers.JSONParser, parsers.FormParser,)
 
     def get(self, request):
-        parse_result = urlparse(request.build_absolute_uri())
-        new_url = '{}://{}:9000/ws.php?format=json&method=pwg.categories.getList&recursive=true&tree_output=true'.format(parse_result.scheme, parse_result.hostname)
+        new_url = 'http://piwigo:9000/ws.php?format=json&method=pwg.categories.getList&recursive=true&tree_output=true'
         categories = requests.get(new_url).json()['result']
         result = flatten_list([build_category(cat) for cat in categories])
         return Response(result, status=status.HTTP_200_OK)
