@@ -40,7 +40,7 @@ services:
     oom_score_adj: 0
     labels:
       - traefik.backend=webodm_webapp
-      - traefik.frontend.rule=Host:localhost
+      - traefik.frontend.rule=Host:${WO_HOST}
       - traefik.docker.network=web
       - traefik.port=8000
       - traefik.enable=true
