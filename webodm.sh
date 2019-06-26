@@ -244,8 +244,11 @@ start(){
 
 		echo "Will enable SSL ($method)"
 	fi
-
-	run "$command start || $command up"
+	if [[ $dev_mode = true ]]; then
+		run "$command start || $command up"
+	else
+		run "$command start || $command up -d"
+	fi		
 }
 
 down(){
