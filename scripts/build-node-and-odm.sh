@@ -6,7 +6,7 @@ if [ "$EUID" -ne 0 ]
 fi
 
 # We specify commits that are compatible with the current version of WebODM
-ODM="3d738c999bc95a31897e57936c935498ac23458e"
+ODM="cd34d9d16bf048cd726e2e7a9f36311cb21f7a52"
 NodeODM="72b4434095bf9eb0bfa4477036e47a0f109ba26f"
 
 echo "Step 1/5: Creating a temp directory..."
