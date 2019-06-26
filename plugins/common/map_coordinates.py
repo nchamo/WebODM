@@ -11,10 +11,10 @@ def map_pixels_to_coordinates(reference_tiff, dst_epsg, pixels):
     
 def map_coordinates_to_pixels(reference_tiff, src_epsg, coordinates):
     src_crs = rio.crs.CRS.from_epsg(src_epsg)
-    coordinates = map_to_new_crs(src_crs, reference_tiff.crs, coordinates)
+    coordinates = map_to_new_crs_with_coordinates(src_crs, reference_tiff.crs, coordinates)
     return [reference_tiff.index(x, y) for (x, y) in coordinates]
 
-def map_to_new_crs(src_crs, target_crs, coordinates):
+def map_to_new_crs_with_coordinates(src_crs, target_crs, coordinates):
     xs = [x for (x, _) in coordinates]
     ys = [y for (_, y) in coordinates]
     return map_to_new_crs(src_crs, target_crs, xs, ys)
