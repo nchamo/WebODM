@@ -32,19 +32,17 @@ class ImportImagesFromPiwigoPanel extends React.Component {
     this.props.onCancel();
   }
   
-  handleChangeImportUrl = (e) => {
+  handleChangeImportAlbum = (e) => {
     this.setState({importAlbum: e});
   }
 
-  handleConfirmImportUrl = () => {
+  handleConfirmImportAlbum = () => {
     this.setState({importingFromPiwigo: true});
-
-    const name = this.state.importAlbum.label.substring(0, this.state.importAlbum.label.lastIndexOf("("));
 
     $.post(`/api/projects/${this.props.projectId}/tasks/importimages`,
       {
-        url: this.state.importAlbum.value,
-        name: name
+        album_id: this.state.importAlbum.album_id,
+        name: this.state.importAlbum.name
       }
     ).done(json => {
       this.setState({importingFromPiwigo: false});
@@ -52,11 +50,11 @@ class ImportImagesFromPiwigoPanel extends React.Component {
       if (json.id){
         this.props.onImported();
       }else{
-        this.setState({error: json.error || `Cannot import from URL, server responded: ${JSON.stringify(json)}`});
+        this.setState({error: json.error || `Cannot import from Piwigo, server responded: ${JSON.stringify(json)}`});
       }
     })
     .fail(() => {
-        this.setState({importingFromPiwigo: false, error: "Cannot import from URL. Check your internet connection."});
+        this.setState({importingFromPiwigo: false, error: "Cannot import from Piwigo. Check your internet connection."});
     });
   }
 
@@ -64,6 +62,10 @@ class ImportImagesFromPiwigoPanel extends React.Component {
     this.setState({loadingOptionsFromPiwigo: true});
     $.get(`/api/albums`)
     .done(json => {
+      json.forEach(album => {
+        album.label = `${album.name} (${album.images} images)`;
+        album.value = album.album_id;
+      })
       this.setState({options: json});
     })
     .fail((error) => {
@@ -91,13 +93,13 @@ class ImportImagesFromPiwigoPanel extends React.Component {
                   isLoading={this.state.loadingOptionsFromPiwigo}
                   isClearable={false}
                   isSearchable={true}
-                  onChange={this.handleChangeImportUrl}
+                  onChange={this.handleChangeImportAlbum}
                   options={this.state.options}
                   placeholder={this.state.loadingOptionsFromPiwigo ? "Fetching Piwigo albums..." : "Please select a Piwigo album"}
                   name="options"
                 />
               </div>
-              <button onClick={this.handleConfirmImportUrl}
+              <button onClick={this.handleConfirmImportAlbum}
                       disabled={!this.state.importAlbum || this.state.importingFromPiwigo} 
                       className="btn-import btn btn-primary"><i className="glyphicon glyphicon-cloud-download"></i> Import</button>
             </div>

@@ -396,17 +396,17 @@ class TaskImagesImport(APIView):
     def post(self, request, project_pk=None):
         project = get_and_check_project(request, project_pk, ('change_project',))
 
-        import_url = request.data.get('url', None)
+        album_id = request.data.get('album_id', None)
         task_name = request.data.get('name', 'Imported Task')
 
-        if not import_url:
-            raise exceptions.ValidationError(detail="Cannot create task, you must specify a URL.")
+        if not album_id:
+            raise exceptions.ValidationError(detail="Cannot create task, you must specify an album id.")
 
         with transaction.atomic():
             task = models.Task.objects.create(project=project,
                                               auto_processing_node=True,
                                               name=task_name,
-                                              import_url=import_url,
+                                              import_album=album_id,
                                               pending_action=pending_actions.IMPORT_IMAGES,
                                               options=[{'name': 'dsm', 'value': 'true'}, {'name': 'dtm', 'value': 'true'}])
             task.create_task_directories()

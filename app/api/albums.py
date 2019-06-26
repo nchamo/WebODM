@@ -24,11 +24,11 @@ class AvailableAlbumsView(APIView):
 def build_category(category):
     name = category['name']
     images = category['nb_images']
-    url = category['url']
+    id = category['id']
     subcategories = flatten_list([build_category(subcat) for subcat in category['sub_categories']]) if category['nb_categories'] > 0 else []
     for subcategory in subcategories:
-        subcategory['label'] = name + ' > ' + subcategory['label']
-    categoryInfo = [{'label': '{} ({} images)'.format(name, images), 'value': url }] if images > 0 else []
+        subcategory['name'] = name + ' > ' + subcategory['name']
+    categoryInfo = [{'name': name, 'images': images, 'album_id': id }] if images > 0 else []
     return categoryInfo + subcategories
     
 def flatten_list(list_of_lists):

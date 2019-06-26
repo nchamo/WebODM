@@ -357,7 +357,7 @@ class ProjectListItem extends React.Component {
     this.setState({importingImages: true});
   }
 
-  handleCancelImportImagesFromUrl = () => {
+  handleCancelImportImagesFromPiwigo = () => {
     this.setState({importingImages: false});
   }
 
@@ -473,7 +473,7 @@ class ProjectListItem extends React.Component {
           {this.state.importingImages ? 
             <ImportImagesFromPiwigoPanel
               onImported={this.newTaskAdded}
-              onCancel={this.handleCancelImportImagesFromUrl}
+              onCancel={this.handleCancelImportImagesFromPiwigo}
               projectId={this.state.data.id}
             />
           : ""}

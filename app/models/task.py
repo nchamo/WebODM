@@ -38,7 +38,6 @@ from .project import Project
 
 from functools import partial
 import subprocess
-from urllib.parse import urlparse
 
 logger = logging.getLogger('app.logger')
 
@@ -229,6 +228,7 @@ class Task(models.Model):
                                         help_text="Value between 0 and 1 indicating the running progress (estimated) of this task",
                                         blank=True)
     import_url = models.TextField(null=False, default="", blank=True, help_text="URL this task is imported from (only for imported tasks)")
+    import_album = models.IntegerField(default=-1, help_text="The id of the piwigo album where the images where imported from (null if they weren't imported from piwigo)")
     images_count = models.IntegerField(null=False, blank=True, default=0, help_text="Number of images associated with this task")
 
     def __init__(self, *args, **kwargs):
@@ -344,56 +344,51 @@ class Task(models.Model):
         self.console_output += "Importing images...\n"
         self.save()
         
-        if not self.import_url:
-            logger.warning("Could not find url to import from in imported task {}".format(self))
+        if not self.import_album:
+            logger.warning("Could not find an album to import from in imported task {}".format(self))
         else:
-            parse_result = urlparse(self.import_url)
-            paths = parse_result.query.split('/')
-            if not 'category' in paths or paths.index('category') >= len(paths) - 1:
-                logger.warning("The url provide does not have the correct format in imported task {}".format(self))
-            else:
-                category = paths[paths.index('category') + 1]
-                # TODO: Make sure we make this work with paging. The max page size is 500, 
-                # but if we have more images this won't work
-                url = 'http://piwigo:9000/ws.php?format=json&method=pwg.categories.getImages&cat_id={}&recursive=false&per_page=500'.format(category)
-                try:
-                    logger.info("Importing images from {} for {}".format(url, self))
-                    
-                    result = requests.get(url, timeout=10).json()['result']
-                    files = [{'fileName': image['file'], 'fileUrl': image['element_url']} for image in result['images']]
-                    logger.info("Found the following images to download {}".format(files))
-                    
-                    self.images_count = len(files)
+            category = self.import_album
+            # TODO: Make sure we make this work with paging. The max page size is 500, 
+            # but if we have more images this won't work
+            url = 'http://piwigo:9000/ws.php?format=json&method=pwg.categories.getImages&cat_id={}&recursive=false&per_page=500'.format(category)
+            try:
+                logger.info("Importing images from {} for {}".format(url, self))
+                
+                result = requests.get(url, timeout=10).json()['result']
+                files = [{'fileName': image['file'], 'fileUrl': image['element_url']} for image in result['images']]
+                logger.info("Found the following images to download {}".format(files))
+                
+                self.images_count = len(files)
+                self.save()
+                downloaded_total = 0
+                for file in files: 
+                    path = self.task_path(file['fileName'])
+                    self.console_output += "Downloading {}/{}...\n".format(downloaded_total + 1, len(files))
                     self.save()
-                    downloaded_total = 0
-                    for file in files: 
-                        path = self.task_path(file['fileName'])
-                        self.console_output += "Downloading {}/{}...\n".format(downloaded_total + 1, len(files))
-                        self.save()
-                        download_stream = requests.get(file['fileUrl'], stream=True, timeout=60)
-                        content_length = download_stream.headers.get('content-length')
-                        total_length = int(content_length) if content_length is not None else None
-                        downloaded = 0
-                        last_update = 0
+                    download_stream = requests.get(file['fileUrl'], stream=True, timeout=60)
+                    content_length = download_stream.headers.get('content-length')
+                    total_length = int(content_length) if content_length is not None else None
+                    downloaded = 0
+                    last_update = 0
 
-                        with open(path, 'wb') as fd:
-                            for chunk in download_stream.iter_content(4096):
-                                downloaded += len(chunk)
+                    with open(path, 'wb') as fd:
+                        for chunk in download_stream.iter_content(4096):
+                            downloaded += len(chunk)
 
-                                if time.time() - last_update >= 2:
-                                    # Update progress
-                                    if total_length is not None:
-                                        Task.objects.filter(pk=self.id).update(upload_progress=((downloaded_total + float(downloaded) / total_length) / len(files)))
+                            if time.time() - last_update >= 2:
+                                # Update progress
+                                if total_length is not None:
+                                    Task.objects.filter(pk=self.id).update(upload_progress=((downloaded_total + float(downloaded) / total_length) / len(files)))
 
-                                    self.check_if_canceled()
-                                    last_update = time.time()
+                                self.check_if_canceled()
+                                last_update = time.time()
 
-                                fd.write(chunk)
-                        appmodels.ImageUpload.objects.create(task=self, image=path)        
-                        downloaded_total += 1
+                            fd.write(chunk)
+                    appmodels.ImageUpload.objects.create(task=self, image=path)        
+                    downloaded_total += 1
 
-                except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, ReadTimeoutError) as e:
-                    raise NodeServerError(e)
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError, ReadTimeoutError) as e:
+                raise NodeServerError(e)
 
         self.refresh_from_db()
         self.pending_action = None
