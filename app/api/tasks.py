@@ -21,7 +21,7 @@ from nodeodm.models import ProcessingNode
 from worker import tasks as worker_tasks
 from .common import get_and_check_project, get_tile_json, path_traversal_check
 from urllib.parse import urlparse
-import requests
+import requests, json
 
 
 def flatten_files(request_files):
@@ -398,17 +398,21 @@ class TaskImagesImport(APIView):
 
         album_id = request.data.get('album_id', None)
         task_name = request.data.get('name', 'Imported Task')
+        options = request.data.get('options', None)
+        options = json.loads(options) if options is not None else [{'name': 'dsm', 'value': 'true'}, {'name': 'dtm', 'value': 'true'}]
+        processing_node = request.data.get('processing_node', None)
 
         if not album_id:
             raise exceptions.ValidationError(detail="Cannot create task, you must specify an album id.")
 
         with transaction.atomic():
             task = models.Task.objects.create(project=project,
+                                              processing_node=ProcessingNode.objects.get(pk=processing_node),
                                               auto_processing_node=True,
                                               name=task_name,
                                               import_album=album_id,
                                               pending_action=pending_actions.IMPORT_IMAGES,
-                                              options=[{'name': 'dsm', 'value': 'true'}, {'name': 'dtm', 'value': 'true'}])
+                                              options=options)
             task.create_task_directories()
             worker_tasks.process_task.delay(task.id)
 

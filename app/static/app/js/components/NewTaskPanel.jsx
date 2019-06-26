@@ -18,7 +18,8 @@ class NewTaskPanel extends React.Component {
       onCancel: PropTypes.func,
       filesCount: PropTypes.number,
       showResize: PropTypes.bool,
-      getFiles: PropTypes.func
+      getFiles: PropTypes.func,
+      initialName: PropTypes.string,
   };
 
   constructor(props){
@@ -119,12 +120,13 @@ class NewTaskPanel extends React.Component {
           <div className={this.state.inReview ? "disabled" : ""}>
             <p>{this.props.filesCount} files selected. Please check these additional options:</p>
             <EditTaskForm
+              initialName = {this.props.initialName}
               onFormLoaded={this.handleFormTaskLoaded}
               onFormChanged={this.handleFormChanged}
               ref={(domNode) => { if (domNode) this.taskForm = domNode; }}
             />
 
-            {this.state.editTaskFormLoaded ?
+            {this.state.editTaskFormLoaded && this.props.showResize ?
               <div>
                 <div className="form-group">
                   <label className="col-sm-2 control-label">Resize Images</label>

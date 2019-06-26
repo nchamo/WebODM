@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ErrorMessage from './ErrorMessage';
 import Select from 'react-select';
+import NewTaskPanel from './NewTaskPanel';
 
 class ImportImagesFromPiwigoPanel extends React.Component {
   static defaultProps = {
@@ -21,7 +22,7 @@ class ImportImagesFromPiwigoPanel extends React.Component {
       error: "",
       options: [],
       loadingOptionsFromPiwigo: false,
-      importingFromPiwigo: false,
+      confirmedAlbumSelection: false,
       importAlbum: null
     };
     
@@ -37,25 +38,7 @@ class ImportImagesFromPiwigoPanel extends React.Component {
   }
 
   handleConfirmImportAlbum = () => {
-    this.setState({importingFromPiwigo: true});
-
-    $.post(`/api/projects/${this.props.projectId}/tasks/importimages`,
-      {
-        album_id: this.state.importAlbum.album_id,
-        name: this.state.importAlbum.name
-      }
-    ).done(json => {
-      this.setState({importingFromPiwigo: false});
-
-      if (json.id){
-        this.props.onImported();
-      }else{
-        this.setState({error: json.error || `Cannot import from Piwigo, server responded: ${JSON.stringify(json)}`});
-      }
-    })
-    .fail(() => {
-        this.setState({importingFromPiwigo: false, error: "Cannot import from Piwigo. Check your internet connection."});
-    });
+    this.setState({confirmedAlbumSelection: true});
   }
 
   loadPiwigoAlbums = () => {
@@ -72,39 +55,72 @@ class ImportImagesFromPiwigoPanel extends React.Component {
         this.setState({loadingOptionsFromPiwigo: false, error: "Cannot load albums from Piwigo. Check your internet connection."});
     });
   }
-
+  
+  handleTaskSaved = (taskInfo) => {
+    $.post(`/api/projects/${this.props.projectId}/tasks/importimages`,
+      {
+        album_id: this.state.importAlbum.album_id,
+        name: taskInfo.name,
+        processing_node: taskInfo.selectedNode.id,
+        options: JSON.stringify(taskInfo.options)
+      }
+    ).done(json => {
+      this.setState({confirmedAlbumSelection: false});
+    
+      if (json.id){
+        this.props.onImported();
+      }else{
+        this.setState({error: json.error || `Cannot import from Piwigo, server responded: ${JSON.stringify(json)}`});
+      }
+    })
+    .fail(() => {
+        this.setState({confirmedAlbumSelection: false, error: "Cannot import from Piwigo. Check your internet connection."});
+    });
+  }
+  
   render() {
     return (
-      <div className="import-task-panel theme-background-highlight">
+      <div className="theme-background-highlight">
         <div className="form-horizontal">
-          <ErrorMessage bind={[this, 'error']} />
+          <div className="import-task-panel">
+            <ErrorMessage bind={[this, 'error']} />
 
-          <button type="button" className="close theme-color-primary" aria-label="Close" onClick={this.cancel}><span aria-hidden="true">&times;</span></button>
-          <h4>Import Images From Piwigo</h4>
-          <p>You can import the images in a Piwigo album to use for a new task.</p>          
-          
-          <div className="form-inline">
-            <div className="form-group">
-              <div style={{width:600, display: 'inline-block'}}>
-                <Select
-                  className="basic-single"
-                  classNamePrefix="select"
-                  isDisabled={this.state.importingFromPiwigo}
-                  isLoading={this.state.loadingOptionsFromPiwigo}
-                  isClearable={false}
-                  isSearchable={true}
-                  onChange={this.handleChangeImportAlbum}
-                  options={this.state.options}
-                  placeholder={this.state.loadingOptionsFromPiwigo ? "Fetching Piwigo albums..." : "Please select a Piwigo album"}
-                  name="options"
-                />
+            <button type="button" className="close theme-color-primary" aria-label="Close" onClick={this.cancel}><span aria-hidden="true">&times;</span></button>
+            <h4>Import Images From Piwigo</h4>
+            { this.state.confirmedAlbumSelection === false ?
+              <div className="form-inline">
+                <p>You can import the images in a Piwigo album to use for a new task.</p>     
+                <div className="form-group">
+                  <div style={{width:600, display: 'inline-block'}}>
+                    <Select
+                      className="basic-single"
+                      classNamePrefix="select"
+                      isLoading={this.state.loadingOptionsFromPiwigo}
+                      isClearable={false}
+                      isSearchable={true}
+                      onChange={this.handleChangeImportAlbum}
+                      options={this.state.options}
+                      placeholder={this.state.loadingOptionsFromPiwigo ? "Fetching Piwigo albums..." : "Please select a Piwigo album"}
+                      name="options"
+                    />
+                  </div>
+                  <button onClick={this.handleConfirmImportAlbum}
+                          disabled={!this.state.importAlbum} 
+                          className="btn-import btn btn-primary"><i className="glyphicon glyphicon-cloud-download"></i> Import</button>
+                </div>
+                <p><b>Note</b>: when importing an album, you only import the images inside. All the sub-albums are ignored. Also, there is a limit of 500 images uploaded per album.</p>
               </div>
-              <button onClick={this.handleConfirmImportAlbum}
-                      disabled={!this.state.importAlbum || this.state.importingFromPiwigo} 
-                      className="btn-import btn btn-primary"><i className="glyphicon glyphicon-cloud-download"></i> Import</button>
-            </div>
+            : "" }
           </div>
-          <p><b>Note</b>: when importing an album, you only import the images inside. All the sub-albums are ignored. Also, there is a limit of 500 images uploaded per album.</p>
+          {this.state.confirmedAlbumSelection ? 
+            <NewTaskPanel
+              initialName={this.state.importAlbum.name}
+              onSave={this.handleTaskSaved}
+              onCancel={this.cancel}
+              filesCount={this.state.importAlbum.images}
+              showResize={false}
+              getFiles={() => [] }
+            /> : "" }
         </div>
       </div>
     );

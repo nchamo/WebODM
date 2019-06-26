@@ -482,7 +482,7 @@ class TaskListItem extends React.Component {
               : ""}
               {task.import_album && task.import_album != -1 ?
                 <div className="labels">
-                  <strong>Imported from Piwigo: </strong> <a href={window.location.protocol + "//imagenes." + window.location.hostname + "/index.php?/category/" + task.import_album}>Go to album</a><br/>
+                  <strong>Imported from Piwigo: </strong> <a href={window.location.protocol + "//imagenes." + window.location.hostname + "/index.php?/category/" + task.import_album} target="_blank">Go to album</a><br/>
                 </div>
               : ""}
               {/* TODO: List of images? */}
