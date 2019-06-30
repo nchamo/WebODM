@@ -50,7 +50,7 @@ export default class ElevationMapPanel extends React.Component {
               if (available_assets.indexOf("dsm.tif") === -1) 
                 this.setState({permanentError: "No DSM is available. Make sure to process a task with either the --dsm option checked"});
               if (available_assets.indexOf("dtm.tif") !== -1) 
-                references.push("Floor");
+                references.push("Ground");
               this.setState({references, reference: references[0]});
           })
           .fail(() => {
@@ -311,7 +311,7 @@ export default class ElevationMapPanel extends React.Component {
             <label className="col-sm-3 control-label">Interval:</label>
             <div className="col-sm-9 ">
               <input type="text" className="form-control" value={interval} onChange={this.handleSelectInterval} /><span></span>
-              <p className="glyphicon glyphicon-info-sign help" data-tip="You have two options:<br/>&#8226; Insert your custom elevation intervals, in the form: 10-15,20-30. <br/>&#8226; Insert a number (for example 5) and the intervals will be auto generated based on the elevation data." />
+              <p className="glyphicon glyphicon-info-sign help" data-tip="You have two options:<br/>&#8226; Insert your custom elevation intervals, in the form: 10-15,20-30. <br/>&#8226; Insert a number (for example 5) and the intervals will be auto generated every 5 meters based on the elevation data." />
             </div>
           </div>
 
@@ -321,7 +321,7 @@ export default class ElevationMapPanel extends React.Component {
             <select className="form-control" value={reference} onChange={this.handleSelectReference}>
               {references.map(r => <option value={r}>{r}</option>)}
             </select>
-            <p className="glyphicon glyphicon-info-sign help" data-tip="You can determine if the intervals specified above will be based on the sea level, or on the floor.<br/>Take into account that in order to be able to select 'floor' you need to have run the task with the --dtm option." />
+            <p className="glyphicon glyphicon-info-sign help" data-tip="You can determine if the intervals specified above will be based on the sea level, or on the ground.<br/>Take into account that in order to be able to select 'ground' you need to have run the task with the --dtm option." />
           </div>
         </div>
 

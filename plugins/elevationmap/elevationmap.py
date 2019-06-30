@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 
-# Doing this to be able to use the code in common
-import sys, os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import cv2, math, argparse
 import numpy as np
 import rasterio as rio
-from geojson import Feature, FeatureCollection, MultiPolygon, dumps
-from common import map_coordinates
+from rasterio import warp, transform
+from geojson import Feature, FeatureCollection, MultiPolygon, dumps 
 
 def main(args):
     # Open dsm
@@ -29,7 +25,7 @@ def main(args):
     else:
         array = dsm_array    
     
-    # Calculate the ranges based on the parameter 'intervals' and the array
+    # Calculate the ranges based on the parameter 'intervals' and the elevation array
     ranges = calculate_ranges(args.intervals, array)   
         
     features = []
@@ -44,7 +40,7 @@ def main(args):
         # Check if we found something
         if len(contours) > 0:
             # Transform contours from pixels to coordinates
-            mapped_contours = [map_coordinates.map_pixels_to_coordinates(dsm, args.epsg, to_pixel_format(contour)) for contour in contours]
+            mapped_contours = [map_pixels_to_coordinates(dsm, args.epsg, to_pixel_format(contour)) for contour in contours]
             # Build the MultiPolygon for based on the contours and their hierarchy
             built_multi_polygon = LevelBuilder(bottom, top, mapped_contours, hierarchy[0]).build_multi_polygon()
             features.append(built_multi_polygon)
@@ -54,33 +50,35 @@ def main(args):
     with open(args.output, 'w+') as output:
         output.write(dump)   
 
-def calculate_difference(dsm_array, dtm):
-    dtm_array = dtm.read(1, masked = True)
-    difference = dsm_array - dtm_array
-    difference.data[difference < 0] = 0
-    return difference
-
-def assert_same_bounds_and_resolution(dsm, dtm):
-    if dtm.bounds != dsm.bounds or dtm.res != dsm.res:
-        raise Exception("DTM and DSM have differenct bounds or resolution.")
-
-def to_pixel_format(contour):
-    return [(pixel[0][1], pixel[0][0]) for pixel in contour]
-
 def get_kernel(noise_filter_size, dsm):
+    """Generate a kernel for noise filtering. Will return none if the noise_filter_size isn't positive"""
     if noise_filter_size <= 0:
         return None
     if dsm.crs.linear_units != 'metre':
         noise_filter_size *= 3.2808333333465 # Convert meter to feets
     return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (round(noise_filter_size / dsm.res[0]), round(noise_filter_size / dsm.res[1])))    
 
+def assert_same_bounds_and_resolution(dsm, dtm):
+    if dtm.bounds != dsm.bounds or dtm.res != dsm.res:
+        raise Exception("DTM and DSM have differenct bounds or resolution.")
+
+def calculate_difference(dsm_array, dtm):
+    """Calculate the difference between the dsm and dtm"""
+    dtm_array = dtm.read(1, masked = True)
+    difference = dsm_array - dtm_array
+    difference.data[difference < 0] = 0 # We set to 0 anything that might have been negative
+    return difference
+
 def calculate_ranges(interval_text, array):
+    """Calculate the ranges based on the provided 'interval_text'"""
     if is_number(interval_text):
+        # If it is a number, then consider it the step
         min_elevation = math.floor(np.amin(array))
         max_elevation = math.ceil(np.amax(array))
         interval = float(interval_text)
-        return [(floor, floor + interval) for floor in np.arange(min_elevation, max_elevation, interval)]
+        return [(bottom, bottom + interval) for bottom in np.arange(min_elevation, max_elevation, interval)]
     else:
+        # If it is not a number, then we consider the text the intervals. We are going to validate them
         ranges = [validate_and_convert_to_range(range) for range in interval_text.split(',')]
         if len(ranges) == 0:
             raise Exception('Please add a range.')
@@ -89,7 +87,24 @@ def calculate_ranges(interval_text, array):
             for i in range(len(ranges) - 1):
                 if ranges[i][1] > ranges[i + 1][0]:
                     raise Exception('Please make sure that the ranges don\'t overlap.')        
-        return ranges     
+        return ranges  
+
+def to_pixel_format(contour):
+    """OpenCV contours have a weird format. We are converting them to (row, col)"""
+    return [(pixel[0][1], pixel[0][0]) for pixel in contour]   
+
+def map_pixels_to_coordinates(reference_tiff, dst_epsg, pixels):
+    """We are assuming that the pixels are a list of tuples. For example: [(row1, col1), (row2, col2)]"""
+    rows = [row for (row, _) in pixels]
+    cols = [col for (_, col) in pixels]
+    xs, ys = transform.xy(reference_tiff.transform, rows, cols)
+    dst_crs = rio.crs.CRS.from_epsg(dst_epsg)
+    return map_to_new_crs(reference_tiff.crs, dst_crs, xs, ys)
+    
+def map_to_new_crs(src_crs, target_crs, xs, ys):
+    """Map the given arrays from one crs to the other"""
+    transformed = warp.transform(src_crs, target_crs, xs, ys)
+    return [(x, y) for x, y in zip(transformed[0], transformed[1])]  
 
 def is_number(text):
     try:
@@ -99,6 +114,7 @@ def is_number(text):
         return False
     
 def validate_and_convert_to_range(range):
+    """Validate the given range and return a tuple (start, end) if it is valid"""
     range = range.strip().split('-')
     if len(range) != 2:
         raise Exception('Ranges must have a beggining and an end.')

@@ -7,7 +7,7 @@
 # dtm: Optional text to include the GeoTIFF DTM
 #
 # ------
-# output: If successful, prints the full path to the elevation map file. Otherwise it prints "error"
+# output: If successful, prints the full path to the elevation map file. If an error.txt file is found, print its content. Otherwise, print 'error'"
 
 ext=""
 if [ "${format}" = "GeoJSON" ]; then

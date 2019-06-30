@@ -9,7 +9,6 @@ echo "Step 1/5: Stopping the service"
 systemctl stop webodm-docker.service 
 
 echo "Step 2/5: Pulling latest master"
-cd ../WebODM
 git pull
 
 echo "Step 3/5: Rebuilding the image"

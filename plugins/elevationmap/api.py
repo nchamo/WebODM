@@ -19,13 +19,13 @@ class TaskElevationMapGenerate(TaskView):
             return Response({'error': 'No DSM layer is available.'}, status=status.HTTP_400_BAD_REQUEST)
         
         reference = request.data.get('reference', 'global')
-        if reference.lower() == 'floor' and task.dtm_extent is None:
-            return Response({'error': 'No DTM layer is available. You need one to reference from the floor.'}, status=status.HTTP_400_BAD_REQUEST)
+        if reference.lower() == 'ground' and task.dtm_extent is None:
+            return Response({'error': 'No DTM layer is available. You need one to set the ground as reference.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             context = grass.create_context({'auto_cleanup' : False})
             dsm = os.path.abspath(task.get_asset_download_path("dsm.tif"))
-            dtm = os.path.abspath(task.get_asset_download_path("dtm.tif")) if reference.lower() == 'floor' else None
+            dtm = os.path.abspath(task.get_asset_download_path("dtm.tif")) if reference.lower() == 'ground' else None
             epsg = int(request.data.get('epsg', '3857'))
             interval = request.data.get('interval', '5')
             format = request.data.get('format', 'GPKG')
