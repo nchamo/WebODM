@@ -245,9 +245,9 @@ start(){
 		echo "Will enable SSL ($method)"
 	fi
 	if [[ $dev_mode = true ]]; then
-		run "$command start || $command up"
+		run "$command start || $command up --scale node-odm=3"
 	else
-		run "$command start || $command up -d"
+		run "$command start || $command up -d --scale node-odm=3"
 	fi		
 }
 

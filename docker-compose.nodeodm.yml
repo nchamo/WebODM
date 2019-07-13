@@ -7,9 +7,9 @@ services:
   webapp:
     entrypoint: /bin/bash -c "chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/start.sh --create-default-pnode\""
     depends_on:
-      - node-odm-1
-  node-odm-1:
+      - node-odm
+  node-odm:
     image: opendronemap/nodeodm
-    container_name: node-odm-1
+    command: --cleanup_tasks_after 60
     restart: on-failure:10
     oom_score_adj: 500
