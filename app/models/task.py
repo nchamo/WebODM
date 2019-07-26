@@ -358,6 +358,12 @@ class Task(models.Model):
                 files = [{'fileName': image['file'], 'fileUrl': image['element_url']} for image in result['images']]
                 logger.info("Found the following images to download {}".format(files))
                 
+                # We are keeping images and txt files, and we are mapping the txt file to the appropriate name
+                files = [self.map_gcp_file_if_necessary(file) for file in files if self.is_valid_file(file)]
+
+                if len(result['images']) != len(files):
+                    logger.info("Filtered out {} images".format(len(result['images']) - len(files)))
+
                 self.images_count = len(files)
                 self.save()
                 downloaded_total = 0
@@ -394,6 +400,17 @@ class Task(models.Model):
         self.pending_action = None
         self.processing_time = 0
         self.save()
+
+    def map_gcp_file_if_necessary(self, file):
+        _, file_extension = os.path.splitext(file['fileName'])
+        if file_extension.lower() == ".txt" and 'gcp' in file['fileName']:
+            file['fileName'] = 'gcp_list.txt'
+        return file
+
+    def is_valid_file(self, file):
+        VALID_EXTENSIONS = ['.tiff', '.tif', '.bmp', '.png', '.jpeg', '.jpg', '.gif', '.svg', '.txt']
+        _, file_extension = os.path.splitext(file['fileName'])
+        return file_extension.lower() in VALID_EXTENSIONS
 
     def handle_import(self):
         self.console_output += "Importing assets...\n"
