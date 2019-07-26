@@ -410,8 +410,7 @@ class Task(models.Model):
     def is_valid_file(self, file):
         VALID_IMAGE_EXTENSIONS = ['.tiff', '.tif', '.bmp', '.png', '.jpeg', '.jpg', '.gif', '.svg']
         _, file_extension = os.path.splitext(file['fileName'])
-        return (file_extension.lower() in VALID_IMAGE_EXTENSIONS) or
-            (file_extension.lower() == '.txt' and 'gcp_list' in file['fileName'])
+        return (file_extension.lower() in VALID_IMAGE_EXTENSIONS) or (file_extension.lower() == '.txt' and 'gcp_list' in file['fileName'])
 
     def handle_import(self):
         self.console_output += "Importing assets...\n"
