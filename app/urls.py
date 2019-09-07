@@ -21,6 +21,7 @@ if settings.TESTING:
 urlpatterns = [
     url(r'^$', app_views.index, name='index'),
     url(r'^welcome/$', app_views.welcome, name='welcome'),
+    url(r'^labelme/$', app_views.labelme, name='labelme'),
     url(r'^dashboard/$', app_views.dashboard, name='dashboard'),
     url(r'^map/project/(?P<project_pk>[^/.]+)/task/(?P<task_pk>[^/.]+)/$', app_views.map, name='map'),
     url(r'^map/project/(?P<project_pk>[^/.]+)/$', app_views.map, name='map'),

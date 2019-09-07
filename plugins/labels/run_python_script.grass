@@ -1,0 +1,17 @@
+# script: Path of the python script
+# params: parameters to pass to the python script
+#
+# ------
+# output: If successful, prints the full path to the output file. Otherwise it prints "error"
+
+${script} ${params}
+
+if [ -e "${output}" ]; then
+  if [ -e "$$(pwd)/${output}" ]; then
+    echo "$$(pwd)/${output}"
+  else  
+    echo "${output}"
+  fi  
+else
+    echo "error"
+fi

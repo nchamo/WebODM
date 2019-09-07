@@ -26,6 +26,7 @@ source ${__dirname}/.env
 DEFAULT_PORT="$WO_PORT"
 DEFAULT_HOST="$WO_HOST"
 DEFAULT_MEDIA_DIR="$WO_MEDIA_DIR"
+DEFAULT_ANNOTATIONS_DIR="$WO_ANNOTATIONS_DIR"
 DEFAULT_SSL="$WO_SSL"
 DEFAULT_SSL_INSECURE_PORT_REDIRECT="$WO_SSL_INSECURE_PORT_REDIRECT"
 DEFAULT_BROKER="$WO_BROKER"
@@ -52,6 +53,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+	--annotations-dir)
+    export WO_ANNOTATIONS_DIR=$(realpath "$2")
+    shift # past argument
+    shift # past value
+    ;;		
     --ssl)
     export WO_SSL=YES
     shift # past argument
@@ -133,6 +139,7 @@ usage(){
   echo "	--port	<port>	Set the port that WebODM should bind to (default: $DEFAULT_PORT)"
   echo "	--hostname	<hostname>	Set the hostname that WebODM will be accessible from (default: $DEFAULT_HOST)"
   echo "	--media-dir	<path>	Path where processing results will be stored to (default: $DEFAULT_MEDIA_DIR (docker named volume))"
+	echo "	--annotations-dir	<path>	Path where label results will be stored to (default: $DEFAULT_ANNOTATIONS_DIR (docker named volume))"
   echo "	--default-nodes	The amount of default NodeODM nodes attached to WebODM on startup (default: 1)"
   echo "	--with-micmac	Create a NodeMICMAC node attached to WebODM on startup. Experimental! (default: disabled)"
   echo "	--ssl	Enable SSL and automatically request and install a certificate from letsencrypt.org. (default: $DEFAULT_SSL)"
@@ -196,6 +203,7 @@ start(){
 	echo "Host: $WO_HOST"
 	echo "Port: $WO_PORT"
 	echo "Media directory: $WO_MEDIA_DIR"
+	echo "Annotations directory: $WO_ANNOTATIONS_DIR"
 	echo "SSL: $WO_SSL"
 	echo "SSL key: $WO_SSL_KEY"
 	echo "SSL certificate: $WO_SSL_CERT"

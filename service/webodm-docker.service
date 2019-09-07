@@ -4,12 +4,19 @@ Requires=docker.service
 After=docker.service
 
 [Service]
+Environment=WEBODM=/data/data1/PICTO-Bosques/repos/WebODM/webodm.sh
+Environment=LABELME=/data/data1/PICTO-Bosques/repos/LabelMeAnnotationTool/labelme.sh
+Environment=PIWIGO=/data/data1/PICTO-Bosques/repos/Piwigo/piwigo.sh
+Environment=MEDIA=/data/data1/PICTO-Bosques/ODMMedia/
+Environment=ANNOTATIONS=/data/data1/PICTO-Bosques/ODMAnnotations/
+Environment=PIWIGO_DATA=/data/data1/PICTO-Bosques/PiwigoData
 Type=forking
 User=odm
 Group=odm
-WorkingDirectory=/opt/WebODM
-ExecStart=/bin/bash -c 'screen -dmS webodm /opt/WebODM/webodm.sh start'
-ExecStop=/bin/bash -c '/opt/WebODM/webodm.sh stop'
+WorkingDirectory=/data/data1/PICTO-Bosques/repos/WebODM
+ExecStart=/bin/bash -c '${WEBODM} start --port 80 --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS} --default-nodes 3 --detached && ${LABELME} start --port 8000 --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS} && ${PIWIGO} start --port 9000 --dir ${PIWIGO_DATA}'
+ExecStop=/bin/bash -c '${WEBODM} stop && ${LABELME} stop && ${PIWIGO} stop'
+RemainAfterExit=yes
 Restart=on-failure
 
 [Install]

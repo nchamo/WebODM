@@ -1,9 +1,13 @@
 # This configuration does not include a processing node
 # Which makes for faster setup times
 version: '2.1'
+networks:
+  web:
+    external: true
 volumes:
   dbdata:
   appmedia:
+  appannotations:
 services:
   db:
     image: opendronemap/webodm_db
@@ -20,8 +24,9 @@ services:
     entrypoint: /bin/bash -c "chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/start.sh\""
     volumes:
       - ${WO_MEDIA_DIR}:/webodm/app/media
-    ports:
-      - "${WO_PORT}:8000"
+      - ${WO_ANNOTATIONS_DIR}:/webodm/app/annotations
+    expose:
+      - "8000"
     depends_on:
       - db
       - broker
@@ -34,6 +39,15 @@ services:
       - WO_DEV
     restart: on-failure:10
     oom_score_adj: 0
+    labels:
+      - traefik.backend=webodm_webapp
+      - traefik.frontend.rule=Host:${WO_HOST}
+      - traefik.docker.network=web
+      - traefik.port=8000
+      - traefik.enable=true
+    networks:
+      - web
+      - default
   broker:
     image: redis
     container_name: broker
@@ -45,6 +59,7 @@ services:
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
       - ${WO_MEDIA_DIR}:/webodm/app/media
+      - ${WO_ANNOTATIONS_DIR}:/webodm/app/annotations
     depends_on:
       - db
       - broker
@@ -53,3 +68,6 @@ services:
       - WO_DEBUG
     restart: on-failure:10
     oom_score_adj: 250
+    networks:
+      - web
+      - default

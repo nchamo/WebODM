@@ -135,6 +135,9 @@ def welcome(request):
                       'firstuserform': fuf
                   })
 
+@login_required
+def labelme(request):
+    return render(request, 'app/public/labelme.html', {'title': 'Label Me'}) 
 
 def handler404(request):
     return render(request, '404.html', status=404)
