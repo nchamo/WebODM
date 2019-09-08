@@ -4,7 +4,7 @@
 # ------
 # output: If successful, prints the full path to the output file. Otherwise it prints "error"
 
-${script} ${params}
+PYTHONPATH="${python_path}" "${script}" ${params}
 
 if [ -e "${output}" ]; then
   if [ -e "$$(pwd)/${output}" ]; then

@@ -2,9 +2,9 @@
 
 import xml.etree.ElementTree as ET
 import rasterio as rio
-import argparse
+import argparse, os
 from geojson import load
-import .map_coordinates
+import map_coordinates
 
 def main(args):
     # Parse the tiff into objects

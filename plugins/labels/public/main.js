@@ -1,4 +1,4 @@
-PluginsAPI.Map.willAddControls([
+PluginsAPI.Map.didAddControls([
     	'labels/build/Labels.js',
     	'labels/build/Labels.css'
 	], function(args, Labels){
@@ -9,6 +9,6 @@ PluginsAPI.Map.willAddControls([
 
 	// TODO: add support for map view where multiple tasks are available?
 	if (tasks.length === 1){
-		args.map.addControl(new Labels({map: args.map, tasks: tasks}));
+		args.map.addControl(new Labels({map: args.map, layersControl: args.controls.autolayers, tasks: tasks}));
 	}
 });

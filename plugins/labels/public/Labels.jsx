@@ -7,8 +7,9 @@ import LabelsPanel from './LabelsPanel';
 
 class LabelsButton extends React.Component {
   static propTypes = {
-    tasks: PropTypes.object.isRequired,
-    map: PropTypes.object.isRequired
+    tasks: PropTypes.array.isRequired,
+    map: PropTypes.object.isRequired,
+    layersControl: PropTypes.object.isRequired
   }
 
   constructor(props){
@@ -27,14 +28,14 @@ class LabelsButton extends React.Component {
     this.setState({showPanel: false});
   }
 
-  render(){
+  render(){ 
     const { showPanel } = this.state;
 
     return (<div className={showPanel ? "open" : ""}>
         <a href="javascript:void(0);" 
             onClick={this.handleOpen} 
             className="leaflet-control-labels-button leaflet-bar-part theme-secondary"></a>
-        <LabelsPanel map={this.props.map} isShowed={showPanel} tasks={this.props.tasks} onClose={this.handleClose} />
+        <LabelsPanel map={this.props.map} layersControl={this.props.layersControl} isShowed={showPanel} tasks={this.props.tasks} onClose={this.handleClose} />
     </div>);
   }
 }
@@ -47,7 +48,7 @@ export default L.Control.extend({
     onAdd: function (map) {
         var container = L.DomUtil.create('div', 'leaflet-control-labels leaflet-bar leaflet-control');
         L.DomEvent.disableClickPropagation(container);
-        ReactDOM.render(<LabelsButton map={this.options.map} tasks={this.options.tasks} />, container);
+        ReactDOM.render(<LabelsButton map={this.options.map} layersControl={this.options.layersControl} tasks={this.options.tasks} />, container);
 
         return container;
     }

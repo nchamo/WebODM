@@ -9,9 +9,10 @@ export default class LabelsPanel extends React.Component {
   };
   static propTypes = {
     onClose: PropTypes.func.isRequired,
-    tasks: PropTypes.object.isRequired,
+    tasks: PropTypes.array.isRequired,
     isShowed: PropTypes.bool.isRequired,
-    map: PropTypes.object.isRequired
+    map: PropTypes.object.isRequired,
+    layersControl: PropTypes.object.isRequired,
   }
 
   constructor(props){
@@ -109,7 +110,7 @@ export default class LabelsPanel extends React.Component {
   }
 
   addVerified = () => {
-    const { map } = this.props;
+    const { map, layersControl } = this.props;
     const taskId = this.state.task.id;
     
     this.generateAndDoWhenReady('addVerifiedLoading', 'generateverified', null, (celery_task_id, result) => {
@@ -138,7 +139,7 @@ export default class LabelsPanel extends React.Component {
                 this.state.previewLayer.setStyle({ opacity: opacity, fillOpacity: opacity * 0.3 });
               }
               this.state.previewLayer.addTo(map);
-              map.layerControl.addOverlay(this.state.previewLayer, "Verified Labels");
+              layersControl.addOverlay(this.state.previewLayer, "Verified Labels");
               this.setState({addVerifiedLoading: false});
             } catch(e) {
               this.setState({addVerifiedLoading: false, 'error': e});
@@ -150,8 +151,8 @@ export default class LabelsPanel extends React.Component {
   }
   
   uploadElevationMap = () => {
-    const { map } = this.props;
-    const result = Object.values(map.layerControl._layers)
+    const { map, layersControl } = this.props;
+    const result = Object.values(layersControl._layers)
         .filter(layer => layer.overlay)
         .filter(layer => layer.name === "Elevation Map")
         .map(layer => layer.layer)
@@ -174,10 +175,10 @@ export default class LabelsPanel extends React.Component {
   }
   
   removePreview = () => {
-    const { map } = this.props;
+    const { map, layersControl } = this.props;
     if (this.state.previewLayer){
       map.removeLayer(this.state.previewLayer);
-      map.layerControl.removeLayer(this.state.previewLayer);
+      layersControl.removeLayer(this.state.previewLayer);
       this.setState({previewLayer: null});
     }
   }

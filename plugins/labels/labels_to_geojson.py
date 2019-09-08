@@ -3,7 +3,7 @@
 import xml.etree.ElementTree as ET
 import argparse, rasterio
 from geojson import Feature, FeatureCollection, Polygon, dumps
-import .map_coordinates
+import map_coordinates
 
 def main(args):
     objects = parse_annotation(args.annotations)

@@ -11,6 +11,8 @@ from worker.tasks import execute_grass_script
 from app.plugins.grass_engine import grass, GrassEngineException, cleanup_grass_context
 from worker.celery import app as celery
 from webodm import settings
+from app.plugins import get_current_plugin
+
 
 class TaskGeneratePngFromGeoTiff(TaskView):
     def post(self, request, pk=None):
@@ -100,6 +102,7 @@ class TaskDownloadVerified(TaskView):
         return download_file(file)
 
 def run_python_script(script_path, script_params, location, output_path, context = None):
+    plugin = get_current_plugin()
     current_dir = os.path.dirname(os.path.abspath(__file__))
     if context is None:
         context = grass.create_context({'auto_cleanup' : False})
@@ -107,6 +110,7 @@ def run_python_script(script_path, script_params, location, output_path, context
     context.add_param('script', script_path)
     context.add_param('params', '{}'.format(script_params))
     context.add_param('output', '{}'.format(output_path))
+    context.add_param('python_path', plugin.get_python_packages_path())
     context.set_location(location)
 
     celery_task_id = execute_grass_script.delay(os.path.join(current_dir, "run_python_script.grass"), context.serialize()).task_id
