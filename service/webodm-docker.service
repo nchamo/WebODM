@@ -7,15 +7,17 @@ After=docker.service
 Environment=WEBODM=/data/data1/PICTO-Bosques/repos/WebODM/webodm.sh
 Environment=LABELME=/data/data1/PICTO-Bosques/repos/LabelMeAnnotationTool/labelme.sh
 Environment=PIWIGO=/data/data1/PICTO-Bosques/repos/Piwigo/piwigo.sh
+Environment=TRAEFIK=/data/data1/PICTO-Bosques/repos/Traefik/traefik.sh
 Environment=MEDIA=/data/data1/PICTO-Bosques/ODMMedia/
 Environment=ANNOTATIONS=/data/data1/PICTO-Bosques/ODMAnnotations/
-Environment=PIWIGO_DATA=/data/data1/PICTO-Bosques/PiwigoData
+Environment=PIWIGO_DATA=/data/data3/PICTO-Bosques/PiwigoData
+Environment=HOSTNAME=bosques.dc.uba.ar
 Type=forking
 User=odm
 Group=odm
 WorkingDirectory=/data/data1/PICTO-Bosques/repos/WebODM
-ExecStart=/bin/bash -c '${WEBODM} start --port 80 --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS} --default-nodes 3 --detached && ${LABELME} start --port 8000 --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS} && ${PIWIGO} start --port 9000 --dir ${PIWIGO_DATA}'
-ExecStop=/bin/bash -c '${WEBODM} stop && ${LABELME} stop && ${PIWIGO} stop'
+ExecStart=/bin/bash -c '${TRAEFIK} start --hostname ${HOSTNAME} && ${WEBODM} start --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS} --hostname ${HOSTNAME} --default-nodes 3 --detached && ${LABELME} start --media-dir ${MEDIA} --annotations-dir ${ANNOTATIONS} --hostname ${HOSTNAME} && ${PIWIGO} start --dir ${PIWIGO_DATA} --hostname ${HOSTNAME}'
+ExecStop=/bin/bash -c '${TRAEFIK} stop && ${WEBODM} stop && ${LABELME} stop && ${PIWIGO} stop'
 RemainAfterExit=yes
 Restart=on-failure
 

@@ -9,7 +9,7 @@ class LabelsButton extends React.Component {
   static propTypes = {
     tasks: PropTypes.array.isRequired,
     map: PropTypes.object.isRequired,
-    layersControl: PropTypes.object.isRequired
+    layersControl: PropTypes.object.isRequired,
   }
 
   constructor(props){
@@ -28,7 +28,7 @@ class LabelsButton extends React.Component {
     this.setState({showPanel: false});
   }
 
-  render(){ 
+  render(){
     const { showPanel } = this.state;
 
     return (<div className={showPanel ? "open" : ""}>
