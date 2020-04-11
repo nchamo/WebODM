@@ -58,12 +58,8 @@ services:
     container_name: worker
     entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 broker:6379 -- /webodm/wait-for-it.sh -t 0 webapp:8000 -- /webodm/worker.sh start"
     volumes:
-<<<<<<< HEAD
-      - ${WO_MEDIA_DIR}:/webodm/app/media
-      - ${WO_ANNOTATIONS_DIR}:/webodm/app/annotations
-=======
       - ${WO_MEDIA_DIR}:/webodm/app/media:z
->>>>>>> upstream/master
+      - ${WO_ANNOTATIONS_DIR}:/webodm/app/annotations:z
     depends_on:
       - db
       - broker
