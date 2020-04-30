@@ -8,6 +8,6 @@ PluginsAPI.Map.didAddControls([
 	}
 
 	if (tasks.length === 1){
-		args.map.addControl(new ChangeDetection({map: args.map, tasks, alignSupported: false}));
+		args.map.addControl(new ChangeDetection({map: args.map, tasks, alignSupported: true}));
 	}
 });
