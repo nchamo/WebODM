@@ -145,12 +145,12 @@ WSGI_APPLICATION = 'webodm.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'webodm_dev',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'db',
-        'PORT': '5432',
+        'ENGINE': os.environ.get('WO_DATABASE_ENGINE', 'django.contrib.gis.db.backends.postgis'),
+        'NAME': os.environ.get('WO_DATABASE_NAME', 'webodm_dev'),
+        'USER': os.environ.get('WO_DATABASE_USER', 'postgres'),
+        'PASSWORD': os.environ.get('WO_DATABASE_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('WO_DATABASE_HOST', 'db'),
+        'PORT': os.environ.get('WO_DATABASE_PORT', '5432'),
     }
 }
 
@@ -356,7 +356,7 @@ CELERY_RESULT_BACKEND = os.environ.get('WO_BROKER', 'redis://localhost')
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
-CELERY_INCLUDE=['worker.tasks']
+CELERY_INCLUDE=['worker.tasks', 'app.plugins.worker']
 CELERY_WORKER_REDIRECT_STDOUTS = False
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 
